@@ -1,5 +1,5 @@
 > **fastdbsp** is [dbsp 0.2.0](https://crates.io/crates/dbsp/0.2.0) with two performance fixes for nested (recursive)
-> circuits, described in [PATCHES.md](PATCHES.md). The library keeps the name `dbsp`; depend on it with
+> circuits and the dependency updates that let it build on current Rust, described in [PATCHES.md](PATCHES.md). The library keeps the name `dbsp`; depend on it with
 > `dbsp = { package = "fastdbsp", version = "0.2.0" }`. Everything below is upstream's README.
 
 # DBSP

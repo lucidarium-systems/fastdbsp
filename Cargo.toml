@@ -1,6 +1,6 @@
 # dbsp 0.2.0's manifest as crates.io serves it (cargo normalized it from feldera/feldera@3846fcd0d7f6,
-# crates/dbsp/Cargo.toml), renamed to fastdbsp. The library keeps the name `dbsp`, so code written
-# against dbsp 0.2 builds unchanged.
+# crates/dbsp/Cargo.toml), renamed to fastdbsp, with the dependency changes PATCHES.md lists. The library
+# keeps the name `dbsp`, so code written against dbsp 0.2 builds unchanged.
 
 [package]
 edition = "2021"
@@ -167,7 +167,7 @@ version = "1.9.0"
 version = "3.9.1"
 features = [
     "serde",
-    "rkyv",
+    "rkyv_64",
 ]
 
 [dependencies.petgraph]
@@ -181,6 +181,11 @@ version = "0.8.5"
 
 [dependencies.rkyv]
 version = "0.7.42"
+features = [
+    "std",
+    "size_64",
+]
+default-features = false
 
 [dependencies.rocksdb]
 version = "0.21"
@@ -197,7 +202,8 @@ features = ["derive"]
 optional = true
 
 [dependencies.size-of]
-version = "0.1.5"
+version = "0.1.7"
+package = "feldera-size-of"
 features = [
     "hashbrown",
     "time-std",
@@ -247,7 +253,7 @@ features = ["xxh3"]
 [dev-dependencies.chrono]
 version = "0.4.26"
 features = [
-    "rkyv",
+    "rkyv-64",
     "serde",
 ]
 
