@@ -1,3 +1,7 @@
+> **fastdbsp** is [dbsp 0.2.0](https://crates.io/crates/dbsp/0.2.0) with two performance fixes for nested (recursive)
+> circuits, described in [PATCHES.md](PATCHES.md). The library keeps the name `dbsp`; depend on it with
+> `dbsp = { package = "fastdbsp", version = "0.2.0" }`. Everything below is upstream's README.
+
 # DBSP
 
 Database Stream Processor (DBSP) is a computational engine for
