@@ -159,8 +159,11 @@ where
     fn recede_to(&mut self, frontier: &T) {
         // Nothing to do if the batch is entirely before the frontier.
         if !self.upper().less_equal(frontier) {
-            // TODO: Optimize case where self.upper()==self.lower().
             self.do_recede_to(frontier);
+            // Every time is now at or before `frontier`: record it, so that later recedes to the same frontier
+            // (one per outer step) skip this batch instead of walking and re-sorting it again.
+            self.lower = self.lower.as_ref().iter().map(|t| t.meet(frontier)).collect();
+            self.upper = Antichain::from_elem(frontier.clone());
         }
     }
 }
