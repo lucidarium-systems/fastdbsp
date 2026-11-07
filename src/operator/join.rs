@@ -1,7 +1,7 @@
 //! Relational join operator.
 
 use crate::{
-    algebra::{IndexedZSet, Lattice, MulByRef, PartialOrder, ZRingValue, ZSet},
+    algebra::{AddAssignByRef, HasZero, IndexedZSet, Lattice, MulByRef, PartialOrder, ZRingValue, ZSet},
     circuit::{
         metadata::{MetaItem, OperatorLocation, OperatorMeta},
         operator_traits::{BinaryOperator, Operator},
@@ -754,6 +754,7 @@ where
         let mut trace_cursor = trace.cursor();
 
         let time = self.clock.time();
+        let mut times: Vec<(T::Time, I::R)> = Vec::new();
 
         while index_cursor.key_valid() && trace_cursor.key_valid() {
             match index_cursor.key().cmp(trace_cursor.key()) {
@@ -768,18 +769,33 @@ where
                         //println!("v1: {}, w1: {}", v1, w1);
 
                         while trace_cursor.val_valid() {
-                            let output =
-                                (self.join_func)(index_cursor.key(), v1, trace_cursor.val());
-                            for (k, v) in output {
-                                trace_cursor.map_times(|ts, w2| {
-                                    output_tuples.push((
-                                        ts.join(&time),
-                                        MaybeUninit::new((
-                                            Z::item_from(k.clone(), v.clone()),
-                                            w1.mul_by_ref(w2),
-                                        )),
-                                    ));
-                                });
+                            // Sum this value's trace weights by output time before joining: updates that land at
+                            // the same output time (e.g. +x from an earlier step and -x from this one) cancel here
+                            // instead of in output tuples that are sorted and consolidated away, and a value whose
+                            // weights all cancel never reaches the join function.
+                            times.clear();
+                            trace_cursor.map_times(|ts, w2| {
+                                let t = ts.join(&time);
+                                match times.iter_mut().find(|(t0, _)| *t0 == t) {
+                                    Some((_, w)) => w.add_assign_by_ref(w2),
+                                    None => times.push((t, w2.clone())),
+                                }
+                            });
+                            times.retain(|(_, w)| !w.is_zero());
+                            if !times.is_empty() {
+                                let output =
+                                    (self.join_func)(index_cursor.key(), v1, trace_cursor.val());
+                                for (k, v) in output {
+                                    for (t, w2) in times.iter() {
+                                        output_tuples.push((
+                                            t.clone(),
+                                            MaybeUninit::new((
+                                                Z::item_from(k.clone(), v.clone()),
+                                                w1.mul_by_ref(w2),
+                                            )),
+                                        ));
+                                    }
+                                }
                             }
                             trace_cursor.step_val();
                         }
